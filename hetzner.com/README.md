@@ -10,8 +10,8 @@ provider "hcloud" {
   alias = "hetzner"
 }
 
-module "hetzner" {
-  source = "github.com/MykolaBilyi/terraform-modules//hetzner.com"
+module "vps" {
+  source = "github.com/MykolaBilyi/terraform-modules//hetzner.com?ref=v0.1"
 
   name = "test"
   domain_name = "example.com"
