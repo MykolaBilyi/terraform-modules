@@ -1,10 +1,8 @@
 variable "connection" {
   type = object({
-    type        = optional(string, "ssh")
     user        = string
     private_key = string
     host        = string
-    host_key    = optional(string)
   })
 }
 
