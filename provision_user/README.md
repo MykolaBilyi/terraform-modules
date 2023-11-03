@@ -12,7 +12,6 @@ module "admin_user" {
   public_keys = [file("~/.ssh/id_rsa.pub")]
 
   connection = {
-    type        = "ssh"
     user        = "root"
     private_key = file("~/.ssh/id_rsa")
     host        = "my.domain.com"
