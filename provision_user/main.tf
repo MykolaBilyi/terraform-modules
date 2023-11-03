@@ -30,6 +30,8 @@ resource "ssh_resource" "delete_user" {
 }
 
 resource "ssh_resource" "keys" {
+  count = length(var.public_keys) > 0 ? 1 : 0
+
   host        = var.connection.host
   user        = var.connection.user
   private_key = var.connection.private_key
@@ -37,7 +39,11 @@ resource "ssh_resource" "keys" {
   when = "create"
 
   file {
-    content     = join("\n", [for key in var.public_keys : key])
+    content     = <<EOT
+%{ for key in var.public_keys ~}
+${key}
+%{ endfor ~}
+EOT
     destination = "/tmp/public_keys.pub"
     permissions = "0600"
   }
@@ -52,6 +58,8 @@ resource "ssh_resource" "keys" {
 }
 
 resource "ssh_resource" "add_user_groups" {
+  count = length(var.groups) > 0 ? 1 : 0
+
   host        = var.connection.host
   user        = var.connection.user
   private_key = var.connection.private_key
@@ -59,7 +67,7 @@ resource "ssh_resource" "add_user_groups" {
   when = "create"
 
   file {
-    content     = "${var.user_name} ALL=(ALL) NOPASSWD: ALL"
+    content     = "${var.user_name} ALL=(ALL) NOPASSWD: ALL\n"
     destination = "/tmp/sudoers_${var.user_name}"
     permissions = "0600"
   }
@@ -73,13 +81,13 @@ resource "ssh_resource" "add_user_groups" {
       )
       ], [
       "rm /tmp/sudoers_${var.user_name}",
-      "sudo test -n /etc/sudoers.d/${var.user_name} || sudo chown root:root /etc/sudoers.d/${var.user_name}",
+      "sudo chown root:root /etc/sudoers.d/${var.user_name} || true",
     ]
   )
 }
 
 resource "ssh_resource" "remove_sudoers" {
-  count = var.on_destroy == "delete" ? 1 : 0
+  count = var.on_destroy == "delete" && contains(var.groups, "sudo") ? 1 : 0
 
   host        = var.connection.host
   user        = var.connection.user
@@ -88,6 +96,6 @@ resource "ssh_resource" "remove_sudoers" {
   when = "destroy"
 
   commands = [
-    "sudo test -n /etc/sudoers.d/${var.user_name} || sudo rm /etc/sudoers.d/${var.user_name}",
+    "sudo rm -f /etc/sudoers.d/${var.user_name}",
   ]
 }

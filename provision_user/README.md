@@ -6,7 +6,7 @@ Module to provision user on a remote host.
 
 ```hcl
 module "admin_user" {
-  source = "github.com/MykolaBilyi/terraform-modules//provision_user?ref=v0.3"
+  source = "github.com/MykolaBilyi/terraform-modules//provision_user?ref=v0.4"
 
   user_name   = "testuser"
   public_keys = [file("~/.ssh/id_rsa.pub")]
