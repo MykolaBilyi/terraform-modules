@@ -16,6 +16,56 @@ resource "hcloud_server" "this" {
   labels     = var.hetzner_labels
   ssh_keys   = [hcloud_ssh_key.default.id]
   user_data  = var.init_script
+
+  provisioner "file" {
+    connection { host = self.ipv4_address }
+    content     = tls_private_key.host_key["RSA"].public_key_openssh
+    destination = "/etc/ssh/ssh_host_rsa_key.pub"
+  }
+  provisioner "file" {
+    connection { host = self.ipv4_address }
+    content     = tls_private_key.host_key["RSA"].private_key_openssh
+    destination = "/etc/ssh/ssh_host_rsa_key"
+  }
+
+  provisioner "file" {
+    connection { host = self.ipv4_address }
+    content     = tls_private_key.host_key["ECDSA"].public_key_openssh
+    destination = "/etc/ssh/ssh_host_ecdsa_key.pub"
+  }
+  provisioner "file" {
+    connection { host = self.ipv4_address }
+    content     = tls_private_key.host_key["ECDSA"].private_key_openssh
+    destination = "/etc/ssh/ssh_host_ecdsa_key"
+  }
+
+  provisioner "file" {
+    connection { host = self.ipv4_address }
+    content     = tls_private_key.host_key["ED25519"].public_key_openssh
+    destination = "/etc/ssh/ssh_host_ed25519_key.pub"
+  }
+  provisioner "file" {
+    connection { host = self.ipv4_address }
+    content     = tls_private_key.host_key["ED25519"].private_key_openssh
+    destination = "/etc/ssh/ssh_host_ed25519_key"
+  }
+  
+  provisioner "remote-exec" {
+    # Remove old host keys
+    connection { host = self.ipv4_address }
+    inline = [
+      "rm -r `ls /etc/ssh/ssh_host_*| grep -v \"/ssh_host_rsa_key\\(.pub\\)\\?\\$\\|/ssh_host_ecdsa_key\\(.pub\\)\\?\\$\\|/ssh_host_ed25519_key\\(.pub\\)\\?\\$\"`",
+      "chmod 0600 /etc/ssh/ssh_host_*_key",
+      "chmod 0644 /etc/ssh/ssh_host_*_key.pub",
+    ]
+  }
+}
+
+resource "tls_private_key" "host_key" {
+  for_each =  toset(["RSA", "ECDSA", "ED25519"])
+  algorithm = each.key
+  rsa_bits  = 4096
+  ecdsa_curve = "P384"
 }
 
 resource "hcloud_primary_ip" "primary_ip" {
