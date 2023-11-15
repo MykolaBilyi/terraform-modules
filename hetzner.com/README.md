@@ -11,7 +11,7 @@ provider "hcloud" {
 }
 
 module "vps" {
-  source = "github.com/MykolaBilyi/terraform-modules//hetzner.com?ref=v0.5"
+  source = "github.com/MykolaBilyi/terraform-modules//hetzner.com?ref=v0.7"
 
   name = "test"
   domain_name = "example.com"

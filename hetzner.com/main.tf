@@ -9,7 +9,6 @@ resource "hcloud_server" "this" {
   server_type = var.hetzner_vps_type
   public_net {
     ipv4_enabled = true
-    ipv4         = hcloud_primary_ip.primary_ip.id
     ipv6_enabled = true
   }
   datacenter = var.hetzner_datacenter
@@ -66,15 +65,6 @@ resource "tls_private_key" "host_key" {
   algorithm = each.key
   rsa_bits  = 4096
   ecdsa_curve = "P384"
-}
-
-resource "hcloud_primary_ip" "primary_ip" {
-  name          = "${local.name_prefix}-primary-ip"
-  datacenter    = var.hetzner_datacenter
-  type          = "ipv4"
-  assignee_type = "server"
-  auto_delete   = false
-  labels        = var.hetzner_labels
 }
 
 resource "hcloud_ssh_key" "default" {
