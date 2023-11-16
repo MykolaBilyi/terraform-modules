@@ -1,7 +1,8 @@
 variable "connection" {
   type = object({
     user        = string
-    private_key = string
+    private_key = optional(string)
+    agent       = optional(bool)
     host        = string
   })
 }
@@ -24,7 +25,7 @@ variable "on_destroy" {
   type    = string
   default = "delete"
   validation {
-    condition = contains(["keep", "delete"], var.on_destroy)
-    error_message = "The value of on_destroy must be either \"keep\" or \"delete\""
+    condition = contains(["keep", "delete", "delete_keys"], var.on_destroy)
+    error_message = "The value of on_destroy must be either \"keep\", \"delete\", or \"delete_keys\""
   }
 }
