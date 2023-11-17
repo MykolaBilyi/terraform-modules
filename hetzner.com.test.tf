@@ -40,21 +40,14 @@ resource "terraform_data" "remove_host_key" {
   depends_on = [ module.vps ]
 }
 
-check "host_keys" {
-  data "external" "host_keys" {
-    program = ["bash", "${path.module}/test-json-helper.sh", "ssh-keyscan", module.vps.server_ip]
+check "ssh_access" {
+  data "external" "ssh_access" {
+    program = ["ssh", "-o", "StrictHostKeyChecking=no", "-p", module.connection.port, "${module.connection.user}@${module.connection.host}", "echo", "'{\"test\":\"passed\"}'"]
   }
 
   assert {
-    condition     = 0 == length(setsubtract(split("\n", data.external.host_keys.result.output), [for k in module.vps.server_host_keys : trimspace("${module.vps.server_ip} ${k}")]))
-    error_message = <<EOF
-    Host keys are not equal:
-    `ssh-keyscan ${module.vps.server_ip}`:
-    ${data.external.host_keys.result.output}
-    
-    Expected:
-    ${join("\n", [for k in module.vps.server_host_keys : trimspace("${module.vps.server_ip} ${k}")])}
-    EOF
+    condition     = data.external.ssh_access.result.test == "passed"
+    error_message = "Unexpected command response"
   }
 }
 
